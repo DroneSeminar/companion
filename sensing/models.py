@@ -50,7 +50,7 @@ class HardSwishActivation(nn.Module):
         return x * self.sigmoid(x)
 
 class Base(nn.Module):
-    def __init__(self):
+    def __init__(self, relu6=True):
         super(Base, self).__init__()
 
         def relu(relu6):
@@ -78,20 +78,20 @@ class Base(nn.Module):
             )
 
         self.model = nn.Sequential(
-            conv_3x3_bn(   3,   32, 2),
-            conv_3x3_dw(  32,   64, 1),
-            conv_3x3_dw(  64,  128, 2),
-            conv_3x3_dw( 128,  128, 1),
-            conv_3x3_dw( 128,  256, 2),
-            conv_3x3_dw( 256,  256, 1),
-            conv_3x3_dw( 256,  512, 2),
-            conv_3x3_dw( 512,  512, 1),
-            conv_3x3_dw( 512,  512, 1),
-            conv_3x3_dw( 512,  512, 1),
-            conv_3x3_dw( 512,  512, 1),
-            conv_3x3_dw( 512,  512, 1),
-            conv_3x3_dw( 512, 1024, 2),
-            conv_3x3_dw(1024, 1024, 1),
+            conv_3x3_bn(   3,   32, 2, relu6),
+            conv_3x3_dw(  32,   64, 1, relu6),
+            conv_3x3_dw(  64,  128, 2, relu6),
+            conv_3x3_dw( 128,  128, 1, relu6),
+            conv_3x3_dw( 128,  256, 2, relu6),
+            conv_3x3_dw( 256,  256, 1, relu6),
+            conv_3x3_dw( 256,  512, 2, relu6),
+            conv_3x3_dw( 512,  512, 1, relu6),
+            conv_3x3_dw( 512,  512, 1, relu6),
+            conv_3x3_dw( 512,  512, 1, relu6),
+            conv_3x3_dw( 512,  512, 1, relu6),
+            conv_3x3_dw( 512,  512, 1, relu6),
+            conv_3x3_dw( 512, 1024, 2, relu6),
+            conv_3x3_dw(1024, 1024, 1, relu6),
             nn.AvgPool2d(7)
         )
         self.fullyConnected = nn.Linear(1024, 1000)

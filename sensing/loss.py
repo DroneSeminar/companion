@@ -15,25 +15,25 @@ def createWindow(windowSize, channel=1):
     return window
 
 # https://en.wikipedia.org/wiki/Structural_similarity
-def SSIM(true, pred, valRange, windowSize=11, window=None, sizeAverage=True, full=False):
+def SSIM(pred, true, valRange, windowSize=11, window=None, sizeAverage=True, full=False):
     L = valRange
 
     padding = 0
-    (_, channel, height, width) = true.size()
+    (_, channel, height, width) = pred.size()
     if window is None:
         realSize = min(windowSize, height, width)
-        window = createWindow(realSize, channel).to(true.device)
+        window = createWindow(realSize, channel).to(pred.device)
 
-    mu1 = F.conv2d(true, window, padding=padding, groups=channel)
-    mu2 = F.conv2d(pred, window, padding=padding, groups=channel)
+    mu1 = F.conv2d(pred, window, padding=padding, groups=channel)
+    mu2 = F.conv2d(true, window, padding=padding, groups=channel)
 
     mu1sq = mu1.pow(2)
     mu2sq = mu2.pow(2)
     mu12 = mu1 * mu2
 
-    sigma1sq = F.conv2d(true * true, window, padding=padding, groups=channel) - mu1sq
-    sigma2sq = F.conv2d(pred * pred, window, padding=padding, groups=channel) - mu2sq
-    sigma12 = F.conv2d(true * pred, window, padding=padding, groups=channel) - mu12
+    sigma1sq = F.conv2d(pred * pred, window, padding=padding, groups=channel) - mu1sq
+    sigma2sq = F.conv2d(true * true, window, padding=padding, groups=channel) - mu2sq
+    sigma12 = F.conv2d(pred * true, window, padding=padding, groups=channel) - mu12
 
     C1 = (0.01 * L) ** 2
     C2 = (0.03 * L) ** 2
@@ -52,3 +52,15 @@ def SSIM(true, pred, valRange, windowSize=11, window=None, sizeAverage=True, ful
     if full:
         return returnValue, cs
     return returnValue
+
+class MaskedL1Loss(nn.Module):
+    def __init__(self):
+        super(MaskedL1Loss, self).__init__()
+
+    def forward(self, pred, target):
+        assert pred.dim() == target.dim(), "inconsistent dimensions"
+        validMask = (target>0).detach()
+        diff = target - pred
+        diff = diff[validMask]
+        self.loss = diff.abs().mean()
+        return self.loss
